@@ -39,28 +39,41 @@
 
 ### 📦 Components Specification (부품 구성)
 
+| Category | Component Description | Qty |
+| :--- | :--- | :---: |
+| **3D Printed** | Structural frames, gear joints, and finger segments | 1 Set |
+| **Servo** | 5x High-torque actuators for independent finger articulation | 5 EA |
+| **MCU** | Arduino Nano with Dedicated IO Expansion Shield | 1 Set |
+| **Etc** | Precision Gear meshing system & Fastener set (Bolts/Nuts) | Full Set |
+
 <div align="center">
   <img src="https://raw.githubusercontent.com/WeAreHellMaker/HellHand/main/images/HellHand_Gear_PartsList.jpg" width="500">
   <p><b>Parts List</b></p>
 </div>
 
+## ✨ Key Features (주요 기능)
 
-# System Architecture
+* **Real-time Hand Tracking**: Python(MediaPipe)을 이용한 21개 손 관절 포인트의 고정밀 실시간 캡처.
+* **Precision Gear System**: 서보 모터의 동력을 효율적으로 각 손가락 마디에 전달하는 기어 메커니즘 적용.
+* **Adaptive Control**: 사용자의 손가락 굽힘 각도를 계산하여 로봇 관절의 가동 범위(RoM)에 맞게 매핑.
+* **Scalable Architecture**: Python 기반의 모듈화된 코드로 작성되어 추후 AI 제어 알고리즘 확장이 용이함.
 
-Python Host: Processes input (GUI, Computer Vision, or Scripts) and calculates joint angles.
-Serial Bridge: Sends data packets (e.g., <90, 45, 180...>) to the Arduino.
-Arduino Firmware: Receives commands and generates PWM signals to control the robotic fingers.
+---
 
-# Key Features:
+## 🛠 Tech Stack (기술 스택)
 
-Firmware Optimized for Arduino: Lightweight C++ code for stable motor control.
-Serial Protocol: Robust communication between Python and Arduino using pySerial.
-Dynamic Mapping: Easily map Python-calculated values to 0-180 degree servo angles.
+* **Language:** Python 3.12+
+* **Vision AI:** MediaPipe / OpenCV (Real-time Hand Landmark Detection)
+* **Communication:** PySerial (High-speed Serial Communication)
+* **Hardware:** Arduino / ATMega328P based MCU
 
-Plug & Play: Auto-detection of COM/tty ports for quick setup.
+---
 
-Technical Stack:
+## 🏗 Installation (설치 방법)
 
-Software: Python 3.x, pySerial
+```bash
+# Clone this repository
+git clone [https://github.com/WeAreHellMaker/HellHand.git](https://github.com/WeAreHellMaker/HellHand.git)
 
-Hardware: Arduino (Uno/Nano/Mega), Servo Motors (MG996R/SG90), External 5V/6V Power Supply
+# Install required Python libraries
+pip install mediapipe opencv-python pyserial
