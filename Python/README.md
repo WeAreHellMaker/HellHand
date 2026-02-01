@@ -51,3 +51,6 @@ HellHand는 Python과 MediaPipe의 최신 **Tasks API**를 활용하여 인간�
 ### 1. Requirements Installation
 ```bash
 pip install mediapipe opencv-python numpy pyserial
+
+# 터미널에서 바로 다운로드
+curl -o hand_landmarker.task https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
