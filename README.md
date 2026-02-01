@@ -19,6 +19,13 @@ This repository features a Python-based interface designed to control a robotic 
   </tr>
 </table>
 
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/WeAreHellMaker/HellHand/main/images/HellHand_Gear_Part.jpg" width="600">
+  <p><b>Full Assembly Parts List</b></p>
+  <p><i>3D Printed / Servo  / Microcontroller Unit / Etc</i></p>
+</div>
+
 # System Architecture
 
 Python Host: Processes input (GUI, Computer Vision, or Scripts) and calculates joint angles.
