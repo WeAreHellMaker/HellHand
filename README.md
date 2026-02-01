@@ -2,21 +2,19 @@
 
 This repository features a Python-based interface designed to control a robotic hand via an Arduino microcontroller. The system leverages Python's high-level processing power to calculate movements and sends precise commands to the Arduino over Serial communication (UART) to drive servo motors.
 
-![HellHand Gear](https://raw.githubusercontent.com/WeAreHellMaker/HellHand/main/images/HellHand_Gear_1.jpg)
-
 <table align="center">
   <tr>
     <td align="center">
       <img src="https://raw.githubusercontent.com/WeAreHellMaker/HellHand/main/images/HellHand_Gear_1.jpg" width="200"><br>
-      <sub><b>기어 파츠 1단계</b><br>메인 동력 전달부</sub>
+      <sub><b>Hell Hand Gear</b><br>Front</sub>
     </td>
     <td align="center">
       <img src="https://raw.githubusercontent.com/WeAreHellMaker/HellHand/main/images/HellHand_Gear_2.jpg" width="200"><br>
-      <sub><b>기어 파츠 2단계</b><br>관절 구동 메커니즘</sub>
+      <sub><b>Hell Hand Gear</b><br>Back</sub>
     </td>
     <td align="center">
       <img src="https://raw.githubusercontent.com/WeAreHellMaker/HellHand/main/images/HellHand_Gear_3.jpg" width="200"><br>
-      <sub><b>기어 파츠 3단계</b><br>최종 조립 완료</sub>
+      <sub><b>Hell Hand Gear</b><br>Side</sub>
     </td>
   </tr>
 </table>
