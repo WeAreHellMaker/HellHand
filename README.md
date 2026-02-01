@@ -4,6 +4,23 @@ This repository features a Python-based interface designed to control a robotic 
 
 ![HellHand Gear](https://raw.githubusercontent.com/WeAreHellMaker/HellHand/main/images/HellHand_Gear_1.jpg)
 
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/WeAreHellMaker/HellHand/main/images/HellHand_Gear_1.jpg" width="200"><br>
+      <sub><b>기어 파츠 1단계</b><br>메인 동력 전달부</sub>
+    </td>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/WeAreHellMaker/HellHand/main/images/HellHand_Gear_2.jpg" width="200"><br>
+      <sub><b>기어 파츠 2단계</b><br>관절 구동 메커니즘</sub>
+    </td>
+    <td align="center">
+      <img src="https://raw.githubusercontent.com/WeAreHellMaker/HellHand/main/images/HellHand_Gear_3.jpg" width="200"><br>
+      <sub><b>기어 파츠 3단계</b><br>최종 조립 완료</sub>
+    </td>
+  </tr>
+</table>
+
 # System Architecture
 
 Python Host: Processes input (GUI, Computer Vision, or Scripts) and calculates joint angles.
