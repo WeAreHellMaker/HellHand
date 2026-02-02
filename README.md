@@ -77,3 +77,23 @@ git clone [https://github.com/WeAreHellMaker/HellHand.git](https://github.com/We
 
 # Install required Python libraries
 pip install mediapipe opencv-python pyserial
+
+
+## 📚 Education (교육 활용 가이드)
+
+HellHand 프로젝트는 로보틱스, 컴퓨터 비전, 그리고 하드웨어 제어의 통합 학습을 돕기 위한 교육용 자료를 포함하고 있습니다. `Education` 폴더 내의 가이드를 통해 다음 내용을 학습할 수 있습니다.
+
+### 1. 로보틱스 기초 및 메커니즘
+- **기어 시스템 이해**: 서보 모터의 회전력을 손가락의 선형 운동으로 변환하는 기어 설계 원리 학습.
+- **3D 설계와 조립**: 3D 프린팅 부품을 활용한 구조물 조립 및 기구학적 구조 이해.
+
+### 2. 컴퓨터 비전 기반 AI 제어
+- **MediaPipe 핸드 트래킹**: 카메라를 통해 21개의 손 관절 좌표를 추출하고 데이터를 정규화하는 과정 실습.
+- **데이터 매핑 알고리즘**: 추출된 좌표 데이터를 로봇 관절의 가동 범위(RoM, Range of Motion)에 맞춰 변환하는 알고리즘 학습.
+
+### 3. 임베디드 시스템 및 통신
+- **Serial Communication**: Python(PC)과 Arduino(MCU) 간의 고속 시리얼 통신 프로토콜 설계.
+- **다중 서보 모터 제어**: 다자유도(multi-DOF) 하드웨어를 제어하기 위한 효율적인 전력 관리 및 신호 처리.
+
+> [!TIP]
+> 상세한 학습 단계별 가이드는 [Education 폴더](./Education) 내의 문서들을 참조하세요.
