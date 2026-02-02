@@ -72,13 +72,15 @@
 ## 🏗 Installation (설치 방법)
 
 ```bash
-# Clone this repository
-git clone [https://github.com/WeAreHellMaker/HellHand.git](https://github.com/WeAreHellMaker/HellHand.git)
+# 레포지토리 클론
+git clone https://github.com/WeAreHellMaker/HellHand.git
 
-# Install required Python libraries
+# 프로젝트 폴더로 이동
+cd HellHand
+
+# 필수 라이브러리 설치
 pip install mediapipe opencv-python pyserial
 
----
 
 ## 📚 Education (교육 활용 가이드)
 
