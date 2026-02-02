@@ -81,6 +81,7 @@ cd HellHand
 # 필수 라이브러리 설치
 pip install mediapipe opencv-python pyserial
 
+```
 
 ## 📚 Education (교육 활용 가이드)
 
