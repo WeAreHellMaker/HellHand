@@ -77,7 +77,8 @@ git clone [https://github.com/WeAreHellMaker/HellHand.git](https://github.com/We
 
 # Install required Python libraries
 pip install mediapipe opencv-python pyserial
-'''
+
+---
 
 ## 📚 Education (교육 활용 가이드)
 
