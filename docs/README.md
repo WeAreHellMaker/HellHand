@@ -1,6 +1,6 @@
 ## 📖 Documentation - Hell Hand Gear
 * [Assembly Guide (Online Markdown)](assembly-guide-gear.md)
-* [Download Assembly Guide (PDF)](assembly-guide-gear.pdf.pdf)
+* [Download Assembly Guide (PDF)](./assembly-guide-gear.pdf.pdf)
 
 
 ## 🔌 Arduino Nano I/O Connection
