@@ -1,5 +1,6 @@
 ## 📖 Documentation - Hell Hand Gear
-* [Download Assembly Guide (PDF)](./assembly-guide-gear.pdf.pdf)
+
+* [Download Assembly Guide (PDF)](./assembly-guide-gear.pdf)
 
 
 ## 🔌 Arduino Nano I/O Connection
@@ -17,34 +18,30 @@
   <tbody>
     <tr>
       <td style="padding: 10px; border: 1px solid #dfe2e5;"><b>Servo</b></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #e83e8c;">D3</code></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5;">엄지 제어 (PWM)</td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #e83e8c;">D7</code></td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5;">오른손 엄지 제어 (PWM)</td>
     </tr>
     <tr>
-      <td style="padding: 10px; border: 1px solid #dfe2e5;"><b>Index Servo</b></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #e83e8c;">D5</code></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5;">검지 제어 (PWM)</td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5;"><b>Servo</b></td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #e83e8c;">D8</code></td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5;">오른손 검지 제어 (PWM)</td>
     </tr>
     <tr>
       <td style="padding: 10px; border: 1px solid #dfe2e5;"><b>Middle Servo</b></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #e83e8c;">D6</code></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5;">중지 제어 (PWM)</td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #e83e8c;">D9</code></td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5;">오른손 중지 제어 (PWM)</td>
     </tr>
     <tr>
       <td style="padding: 10px; border: 1px solid #dfe2e5;"><b>Ring Servo</b></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #e83e8c;">D9</code></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5;">약지 제어 (PWM)</td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #e83e8c;">D10</code></td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5;">오른손 약지 제어 (PWM)</td>
     </tr>
     <tr>
       <td style="padding: 10px; border: 1px solid #dfe2e5;"><b>Little Servo</b></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #e83e8c;">D10</code></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5;">소지 제어 (PWM)</td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #e83e8c;">D11</code></td>
+      <td style="padding: 10px; border: 1px solid #dfe2e5;">오른손 소지 제어 (PWM)</td>
     </tr>
-    <tr>
-      <td style="padding: 10px; border: 1px solid #dfe2e5;"><b>Input Sensor</b></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5; text-align: center;"><code style="color: #007bff;">A0</code></td>
-      <td style="padding: 10px; border: 1px solid #dfe2e5;">센서 입력 (Analog)</td>
-    </tr>
+
   </tbody>
 </table>
 
