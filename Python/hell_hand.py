@@ -1,24 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------
-#   Pro Makers = Hell Hand
-#-------------------------------------------------------------------
-
-#-------------------------------------------------------------------
-#   Requirements Installation (Terminal)
-#   pip install mediapipe opencv-python numpy pyserial
-#-------------------------------------------------------------------
-
-# curl -o hand_landmarker.task https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
 
 import argparse
 import cv2 as cv
 import numpy as np
-
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-
 import math
 import time
 import serial
@@ -45,17 +33,14 @@ class CvFpsCalc:
             self._times.pop(0)
         return int(1 / (sum(self._times) / len(self._times))) if sum(self._times) > 0 else 0
 
-
 #-------------------------------------------------------------------
-#   FingerControl Class
+#   FingerControl Class (시리얼 전송 로직 포함)
 #-------------------------------------------------------------------
 class FingerControl:
     def __init__(self, com_port):
         self.serial_port = None
         self.__time_tick_right = time.time()
         self.__time_tick_left = time.time()
-        self.__servo_angle_right = [0, 0, 0, 0, 0]
-        self.__servo_angle_left = [0, 0, 0, 0, 0]
         try:
             self.serial_port = serial.Serial(com_port, 115200, timeout=1)
             print(f"✅ Connected to {com_port}")
@@ -72,7 +57,6 @@ class FingerControl:
         return math.degrees(math.acos(cos_val))
 
     def __finger_angle(self, p1, p2, q1, q2):
-        # Tasks API는 x, y, z 속성을 가짐
         vA = [(p2.x - p1.x), (p2.y - p1.y), (p2.z - p1.z)]
         vB = [(q2.x - q1.x), (q2.y - q1.y), (q2.z - q1.z)]
         return self.__angle_between_vectors(vA, vB)
@@ -81,8 +65,14 @@ class FingerControl:
         x = max(min(x, a_max), a_min)
         return (x - a_min) * (b_max - b_min) / (a_max - a_min) + b_min
 
+    # hand_prefix: 'FR' 또는 'FL'
+    def send_single_finger(self, hand_prefix, finger_idx, angle):
+        if self.serial_port and self.serial_port.is_open:
+            cmd = f"{hand_prefix}{finger_idx-1}{int(angle):03d}\n"
+            self.serial_port.write(cmd.encode())
+            print(f"Sent: {cmd.strip()}")
+
     def finger_robot_right(self, world_landmarks):
-        
         w_ang = [self.__finger_angle(world_landmarks[2], world_landmarks[3], world_landmarks[2], world_landmarks[17]),
                  self.__finger_angle(world_landmarks[5], world_landmarks[8], world_landmarks[5], world_landmarks[0]),
                  self.__finger_angle(world_landmarks[9], world_landmarks[12], world_landmarks[9], world_landmarks[0]),
@@ -90,12 +80,10 @@ class FingerControl:
                  self.__finger_angle(world_landmarks[17], world_landmarks[20], world_landmarks[17], world_landmarks[0])]
         
         s_ang = [self.__linear_transform(w_ang[0], 60, 120, 180, 0),
-            self.__linear_transform(w_ang[1], 30, 160, 180, 0),
-            self.__linear_transform(w_ang[2], 30, 160, 180, 0),
-            self.__linear_transform(w_ang[3], 30, 160, 180, 0),
-            self.__linear_transform(w_ang[4], 30, 160, 180, 0)]
-    
-
+                 self.__linear_transform(w_ang[1], 30, 160, 180, 0),
+                 self.__linear_transform(w_ang[2], 30, 160, 180, 0),
+                 self.__linear_transform(w_ang[3], 30, 160, 180, 0),
+                 self.__linear_transform(w_ang[4], 30, 160, 180, 0)]
             
         now = time.time()
         if (now - self.__time_tick_right) >= 0.03:
@@ -105,59 +93,38 @@ class FingerControl:
             self.__time_tick_right = now
 
     def finger_robot_left(self, world_landmarks):
-
         w_ang = [self.__finger_angle(world_landmarks[2], world_landmarks[3], world_landmarks[2], world_landmarks[17]),
                  self.__finger_angle(world_landmarks[5], world_landmarks[8], world_landmarks[5], world_landmarks[0]),
                  self.__finger_angle(world_landmarks[9], world_landmarks[12], world_landmarks[9], world_landmarks[0]),
                  self.__finger_angle(world_landmarks[13], world_landmarks[16], world_landmarks[13], world_landmarks[0]),
                  self.__finger_angle(world_landmarks[17], world_landmarks[20], world_landmarks[17], world_landmarks[0])]
         
-
         s_ang = [self.__linear_transform(w_ang[0], 60, 110, 180, 0),
                 self.__linear_transform(w_ang[1], 30, 160, 0, 180),
                 self.__linear_transform(w_ang[2], 30, 160, 0, 180),
                 self.__linear_transform(w_ang[3], 30, 160, 180, 0),
                 self.__linear_transform(w_ang[4], 30, 160, 0, 180)]
-
             
         now = time.time()
-
         if (now - self.__time_tick_left) >= 0.03:
             if self.serial_port and self.serial_port.is_open:
                 cmd = "FL5%03d6%03d7%03d8%03d9%03d\n" % tuple(map(int, s_ang))
                 self.serial_port.write(cmd.encode())
             self.__time_tick_left = now
 
-
 #-------------------------------------------------------------------
-#
+#   Drawing Helper Functions
 #-------------------------------------------------------------------
 def draw_text_pill(img, text, pos, font_size, color, align="left"):
-
-    # OpenCV 기본 폰트 설정 (가장 깔끔한 폰트 중 하나)
     font = cv.FONT_HERSHEY_SIMPLEX
-    
-    # 폰트 크기 조절 (OpenCV는 scale 값을 사용하므로 적절히 변환)
-    # font_size 25 기준 약 0.8~1.0 scale이 적당합니다.
     font_scale = font_size / 30.0 
     thickness = 2
-
     if align == "right":
-        # 텍스트의 실제 가로 길이를 계산하여 좌표 수정
         (text_width, text_height), baseline = cv.getTextSize(text, font, font_scale, thickness)
         pos = (pos[0] - text_width, pos[1])
-
-    # OpenCV는 BGR을 사용하므로 color가 (R, G, B)라면 (B, G, R)로 변환이 필요할 수 있습니다.
-    # 만약 기존 color가 (0, 0, 255)라면 그대로 빨간색으로 나옵니다.
     cv.putText(img, text, pos, font, font_scale, color, thickness, cv.LINE_AA)
-    
     return img
 
-
-#-------------------------------------------------------------------
-#   그리기 함수 (Tasks API 구조에 맞춤)
-#-------------------------------------------------------------------
-# 기존 HAND_CONNECTIONS 상수를 직접 가져오기 어렵다면 수동 정의하거나 라이브러리 참조
 HAND_CONNECTIONS = [( 0,  1), ( 1,  2), ( 2,  3), ( 3,  4), ( 5,  6), ( 6,  7), ( 7,  8), 
                     ( 9, 10), (10, 11), (11, 12), (13, 14), (14, 15), (15, 16), (17, 18), 
                     (18, 19), (19, 20), ( 0,  5), ( 5,  9), ( 9, 13), (13, 17), ( 0, 17)]
@@ -165,49 +132,32 @@ HAND_CONNECTIONS = [( 0,  1), ( 1,  2), ( 2,  3), ( 3,  4), ( 5,  6), ( 6,  7), 
 def draw_styled_landmarks(image, landmarks, handedness):
     w, h = image.shape[1], image.shape[0]
     pts = [(min(int(lm.x * w), w-1), min(int(lm.y * h), h-1)) for lm in landmarks]
-    
-    # 손가락 연결선 그리기
     for start, end in HAND_CONNECTIONS:
         cv.line(image, pts[start], pts[end], (0, 255, 0), 2)
-    
-    # 마디 점 그리기
     for i, pt in enumerate(pts):
         color = (0, 0, 255) if i in [4, 8, 12, 16, 20] else (255, 255, 255)
         cv.circle(image, pt, 5, color, -1)
     
-    # 손바닥 중심 계산 및 라벨 표시
     palm_array = np.array([pts[i] for i in [0, 1, 5, 9, 13, 17]])
     M = cv.moments(palm_array)
     if M['m00'] != 0:
         cx, cy = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
-        
-        # --- 라벨 반전 로직 ---
-        # MediaPipe가 판단한 실제 손 방향
         real_label = handedness[0].category_name
-
-        # 화면(거울 모드)에 보일 라벨로 교체
         display_label = "R" if real_label == "Left" else "L"
-        
-        cv.putText(image, display_label, (cx-7, cy+7), 
-                   cv.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-        
+        cv.putText(image, display_label, (cx-7, cy+7), cv.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
     return image
 
 #-------------------------------------------------------------------
-#   메인 루프 (Tasks API 적용)
-#--------------------------------------------------------------------
+#   Main Loop (Tasks API)
+#-------------------------------------------------------------------
 def main_loop(selected_port, args):
     controller = FingerControl(selected_port)
     fps_calc = CvFpsCalc()
 
-    #
-    #   Hand Landmarker 설정
-    #
     base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
-
     options = vision.HandLandmarkerOptions(
         base_options=base_options,
-        running_mode=vision.RunningMode.VIDEO, # 비디오 스트리밍 모드
+        running_mode=vision.RunningMode.VIDEO,
         num_hands=2,
         min_hand_detection_confidence=0.7,
         min_hand_presence_confidence=0.7,
@@ -226,40 +176,21 @@ def main_loop(selected_port, args):
         while cap.isOpened():
             ret, image = cap.read()
             if not ret: break
-            
             image = cv.flip(image, 1)
-           
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=cv.cvtColor(image, cv.COLOR_BGR2RGB))
-
             timestamp_ms = int(time.time() * 1000)
-            
-            # 감지 실행
             result = landmarker.detect_for_video(mp_image, timestamp_ms)
-            screen_w = image.shape[1]
-
+            
             if result.hand_landmarks:
-
-                # 1. 화면에 그리기 (변경된 라벨 적용)
                 for hl, hd in zip(result.hand_landmarks, result.handedness):
                     image = draw_styled_landmarks(image, hl, hd)
-                
-                # 2. 로봇 제어 명령 전송 (제어 로직 반전)
                 for wl, hd in zip(result.hand_world_landmarks, result.handedness):
-                    label = hd[0].category_name # MediaPipe의 원래 판단값
-                    
-                    # MediaPipe가 'Left'라고 판단한 손 -> '오른쪽 로봇' 함수 호출
-                    if label == 'Left': 
-                        controller.finger_robot_right(wl)
-                    # MediaPipe가 'Right'라고 판단한 손 -> '왼쪽 로봇' 함수 호출
-                    else: 
-                        controller.finger_robot_left(wl)
+                    label = hd[0].category_name
+                    if label == 'Left': controller.finger_robot_right(wl)
+                    else: controller.finger_robot_left(wl)
 
-
-            # UI 요소
             cv.putText(image, f"FPS: {fps_calc.get()}", (20, 40), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-            
-            debug_image = draw_text_pill(image, "ESC to Exit", (screen_w - 20, 20), 25, (0, 0, 255), align="right")
-            
+            draw_text_pill(image, "ESC to Exit", (image.shape[1] - 20, 20), 25, (0, 0, 255), align="right")
             cv.imshow(window_name, image)
             if cv.waitKey(1) == 27: break
 
@@ -267,32 +198,140 @@ def main_loop(selected_port, args):
     cv.destroyAllWindows()
 
 #-------------------------------------------------------------------
-#   GUI Start
+#   GUI Start (오른손/왼손 탭 통합 버전)
 #-------------------------------------------------------------------
 def start_gui():
+    temp_controller = [None]
+    # 각 손의 트랙바를 저장할 리스트 분리
+    right_scales = []
+    left_scales = []
+
+    def get_temp_controller():
+        port = combo.get()
+        if not port or port == "No Port Connected":
+            return None
+        if temp_controller[0] is None or temp_controller[0].serial_port.port != port:
+            temp_controller[0] = FingerControl(port)
+        return temp_controller[0]
+
+    def send_individual_finger(hand_prefix, finger_idx, value):
+        ctrl = get_temp_controller()
+        if ctrl:
+            ctrl.send_single_finger(hand_prefix, finger_idx, value)
+
+    def send_hand_pose(hand_prefix, angles):
+        ctrl = get_temp_controller()
+        if ctrl and ctrl.serial_port and ctrl.serial_port.is_open:
+            # 프로토콜 형식 구성
+            if hand_prefix == "FR":
+                cmd = "FR0%03d1%03d2%03d3%03d4%03d\n" % tuple(map(int, angles))
+                target_scales = right_scales
+            else:
+                # 왼손 인덱스는 기존 코드에 따라 56789 사용 가능하나, 
+                # 테스트 편의상 FR과 동일한 01234 구조 혹은 지정된 프로토콜에 맞춤
+                cmd = "FL5%03d6%03d7%03d8%03d9%03d\n" % tuple(map(int, angles))
+                target_scales = left_scales
+            
+            ctrl.serial_port.write(cmd.encode())
+            print(f"[{hand_prefix} POSE] {cmd.strip()}")
+            
+            # 해당 탭의 트랙바 업데이트
+            for i, val in enumerate(angles):
+                target_scales[i].set(val)
+
     def on_start():
         port = combo.get()
         if port and port != "No Port Connected":
+            if temp_controller[0] and temp_controller[0].serial_port:
+                temp_controller[0].serial_port.close()
             root.destroy()
             main_loop(port, argparse.Namespace(device=0, width=1280, height=720))
 
     root = tk.Tk()
-    root.title("Hell Hand - Serial Port")
-    root.geometry("350x200")
-    tk.Label(root, text="Select Serial Port", font=("Arial", 12, "bold")).pack(pady=15)
-    
+    root.title("Hell Hand - Multi Control Center")
+    root.geometry("600x700")
+
+    # 1. 포트 선택
+    tk.Label(root, text="Select Serial Port", font=("Arial", 11, "bold")).pack(pady=10)
     ports = [p.device for p in serial.tools.list_ports.comports()]
     combo = ttk.Combobox(root, values=ports, width=25)
     combo.pack(pady=5)
+    if ports: combo.current(0)
+    else: combo.set("No Port Connected")
 
-    if ports: 
-        combo.current(0)
-    else: 
-        combo.set("No Port Connected")
+    # 2. 메인 시작 버튼
+    start_btn = tk.Button(root, text="START HAND TRACKING", command=on_start, 
+                          bg="#1a1a1a", fg="white", font=("Arial", 10, "bold"), pady=5)
+    start_btn.pack(pady=10, fill="x", padx=100)
 
-    start_btn = tk.Button(root, text="Start (Fullscreen)", command=on_start, 
-                          bg="black", fg="white", font=("Arial", 11, "bold"), padx=30, pady=10)
-    start_btn.pack(pady=20)
+
+    # 3. 탭 메뉴 구성
+    notebook = ttk.Notebook(root)
+    notebook.pack(pady=10, fill="both", expand=True, padx=10)
+
+    # 공통 포즈 데이터
+    num_poses = {
+        "0": [180]*5, "1": [180, 0, 180, 180, 180], "2": [180, 0, 0, 180, 180],
+        "3": [180, 0, 0, 0, 180], "4": [180, 0, 0, 0, 0], "5": [0]*5
+    }
+    special_poses = {
+        "Thumbs 👍": [0, 180, 180, 180, 180], "Victory ✌️": [180, 0, 0, 180, 180],
+        "Rock 🤟": [0, 0, 180, 180, 0], "OK 👌": [0, 180, 0, 0, 0]
+    }
+
+    # --- 오른손(FR) 탭 ---
+    fr_tab = tk.Frame(notebook)
+    notebook.add(fr_tab, text=" Right Hand (FR) ")
+    
+    # 트랙바
+    fr_manual = tk.LabelFrame(fr_tab, text="Manual Control", padx=10, pady=10)
+    fr_manual.pack(pady=10, fill="x", padx=10)
+    for i in range(1, 6):
+        row = tk.Frame(fr_manual)
+        row.pack(fill="x", pady=2)
+        tk.Label(row, text=f"Finger {i}:", width=8).pack(side="left")
+        s = tk.Scale(row, from_=0, to=180, orient=tk.HORIZONTAL, length=250)
+        s.set(0); s.pack(side="left", padx=5)
+        tk.Button(row, text="Send", command=lambda idx=i, sc=s: send_individual_finger("FR", idx, sc.get())).pack(side="left")
+        right_scales.append(s)
+
+    # 포즈
+    fr_pose = tk.LabelFrame(fr_tab, text="Pose Presets", padx=10, pady=10)
+    fr_pose.pack(pady=10, fill="x", padx=10)
+    r_btn_row1 = tk.Frame(fr_pose); r_btn_row1.pack(fill="x")
+    for lbl, angs in num_poses.items():
+        tk.Button(r_btn_row1, text=lbl, width=4, command=lambda a=angs: send_hand_pose("FR", a)).pack(side="left", padx=3, expand=True)
+    r_btn_row2 = tk.Frame(fr_pose); r_btn_row2.pack(fill="x", pady=10)
+    for lbl, angs in special_poses.items():
+        tk.Button(r_btn_row2, text=lbl, width=10, command=lambda a=angs: send_hand_pose("FR", a)).pack(side="left", padx=3, expand=True)
+
+    # --- 왼손(FL) 탭 ---
+    fl_tab = tk.Frame(notebook)
+    notebook.add(fl_tab, text=" Left Hand (FL) ")
+
+    # 트랙바
+    fl_manual = tk.LabelFrame(fl_tab, text="Manual Control", padx=10, pady=10)
+    fl_manual.pack(pady=10, fill="x", padx=10)
+    for i in range(1, 6):
+        row = tk.Frame(fl_manual)
+        row.pack(fill="x", pady=2)
+        tk.Label(row, text=f"Finger {i}:", width=8).pack(side="left")
+        s = tk.Scale(row, from_=0, to=180, orient=tk.HORIZONTAL, length=250)
+        s.set(90); s.pack(side="left", padx=5)
+        tk.Button(row, text="Send", command=lambda idx=i, sc=s: send_individual_finger("FL", idx, sc.get())).pack(side="left")
+        left_scales.append(s)
+
+    # 포즈
+    fl_pose = tk.LabelFrame(fl_tab, text="Pose Presets", padx=10, pady=10)
+    fl_pose.pack(pady=10, fill="x", padx=10)
+    l_btn_row1 = tk.Frame(fl_pose); l_btn_row1.pack(fill="x")
+    for lbl, angs in num_poses.items():
+        tk.Button(l_btn_row1, text=lbl, width=4, command=lambda a=angs: send_hand_pose("FL", a)).pack(side="left", padx=3, expand=True)
+    l_btn_row2 = tk.Frame(fl_pose); l_btn_row2.pack(fill="x", pady=10)
+    for lbl, angs in special_poses.items():
+        tk.Button(l_btn_row2, text=lbl, width=10, command=lambda a=angs: send_hand_pose("FL", a)).pack(side="left", padx=3, expand=True)
+
+
 
     root.mainloop()
 
