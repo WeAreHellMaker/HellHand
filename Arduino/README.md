@@ -3,6 +3,6 @@
 
 이 프로젝트의 핵심 소스 코드는 아래 디렉토리에서 확인하실 수 있습니다.
 
-* **메인 소스:** [[`/src`](./src)](https://github.com/karlkwon/geared_hand/tree/main  ) - 전체 로직 및 컴포넌트 포함
+* **메인 소스:**  https://github.com/karlkwon/geared_hand - 전체 로직 및 컴포넌트 포함
  
 
