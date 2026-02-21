@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#-------------------------------------------------------------------
+#   Pro Makers = Hell Hand  (Version 0.2.0)
+#-------------------------------------------------------------------
+
+#-------------------------------------------------------------------
+#   Requirements Installation (Terminal)
+#   pip install mediapipe opencv-python numpy pyserial
+#-------------------------------------------------------------------
+
+# curl -o hand_landmarker.task https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
 
 import argparse
 import cv2 as cv
@@ -38,9 +48,12 @@ class CvFpsCalc:
 #-------------------------------------------------------------------
 class FingerControl:
     def __init__(self, com_port):
+
         self.serial_port = None
-        self.__time_tick_right = time.time()
+
         self.__time_tick_left = time.time()
+        self.__time_tick_right = time.time()
+       
         try:
             self.serial_port = serial.Serial(com_port, 115200, timeout=1)
             print(f"✅ Connected to {com_port}")
@@ -86,10 +99,15 @@ class FingerControl:
                  self.__linear_transform(w_ang[4], 30, 160, 180, 0)]
             
         now = time.time()
-        if (now - self.__time_tick_right) >= 0.03:
+
+        if (now - self.__time_tick_right) >= 0.3:
+
             if self.serial_port and self.serial_port.is_open:
                 cmd = "FR0%03d1%03d2%03d3%03d4%03d\n" % tuple(map(int, s_ang))
                 self.serial_port.write(cmd.encode())
+
+                time.sleep(0.02)
+
             self.__time_tick_right = now
 
     def finger_robot_left(self, world_landmarks):
@@ -100,16 +118,21 @@ class FingerControl:
                  self.__finger_angle(world_landmarks[17], world_landmarks[20], world_landmarks[17], world_landmarks[0])]
         
         s_ang = [self.__linear_transform(w_ang[0], 60, 110, 180, 0),
-                self.__linear_transform(w_ang[1], 30, 160, 0, 180),
-                self.__linear_transform(w_ang[2], 30, 160, 0, 180),
+                self.__linear_transform(w_ang[1], 30, 160, 180, 0),
+                self.__linear_transform(w_ang[2], 30, 160, 180, 0),
                 self.__linear_transform(w_ang[3], 30, 160, 180, 0),
-                self.__linear_transform(w_ang[4], 30, 160, 0, 180)]
+                self.__linear_transform(w_ang[4], 30, 160, 180, 0)]
             
         now = time.time()
-        if (now - self.__time_tick_left) >= 0.03:
+
+        if (now - self.__time_tick_left) >= 0.3:
+            
             if self.serial_port and self.serial_port.is_open:
                 cmd = "FL5%03d6%03d7%03d8%03d9%03d\n" % tuple(map(int, s_ang))
                 self.serial_port.write(cmd.encode())
+
+                time.sleep(0.02)
+
             self.__time_tick_left = now
 
 #-------------------------------------------------------------------
@@ -274,6 +297,7 @@ def start_gui():
         "0": [180]*5, "1": [180, 0, 180, 180, 180], "2": [180, 0, 0, 180, 180],
         "3": [180, 0, 0, 0, 180], "4": [180, 0, 0, 0, 0], "5": [0]*5
     }
+
     special_poses = {
         "Thumbs 👍": [0, 180, 180, 180, 180], "Victory ✌️": [180, 0, 0, 180, 180],
         "Rock 🤟": [0, 0, 180, 180, 0], "OK 👌": [0, 180, 0, 0, 0]
@@ -299,9 +323,11 @@ def start_gui():
     fr_pose = tk.LabelFrame(fr_tab, text="Pose Presets", padx=10, pady=10)
     fr_pose.pack(pady=10, fill="x", padx=10)
     r_btn_row1 = tk.Frame(fr_pose); r_btn_row1.pack(fill="x")
+    
     for lbl, angs in num_poses.items():
         tk.Button(r_btn_row1, text=lbl, width=4, command=lambda a=angs: send_hand_pose("FR", a)).pack(side="left", padx=3, expand=True)
     r_btn_row2 = tk.Frame(fr_pose); r_btn_row2.pack(fill="x", pady=10)
+    
     for lbl, angs in special_poses.items():
         tk.Button(r_btn_row2, text=lbl, width=10, command=lambda a=angs: send_hand_pose("FR", a)).pack(side="left", padx=3, expand=True)
 
@@ -312,25 +338,29 @@ def start_gui():
     # 트랙바
     fl_manual = tk.LabelFrame(fl_tab, text="Manual Control", padx=10, pady=10)
     fl_manual.pack(pady=10, fill="x", padx=10)
+    
     for i in range(1, 6):
         row = tk.Frame(fl_manual)
         row.pack(fill="x", pady=2)
         tk.Label(row, text=f"Finger {i}:", width=8).pack(side="left")
         s = tk.Scale(row, from_=0, to=180, orient=tk.HORIZONTAL, length=250)
-        s.set(90); s.pack(side="left", padx=5)
-        tk.Button(row, text="Send", command=lambda idx=i, sc=s: send_individual_finger("FL", idx, sc.get())).pack(side="left")
+        s.set(0); s.pack(side="left", padx=5)
+        tk.Button(row, text="Send", command=lambda idx=i, sc=s: send_individual_finger("FL", idx + 5, sc.get())).pack(side="left")
         left_scales.append(s)
 
-    # 포즈
+    #
+    #   포즈
+    #
     fl_pose = tk.LabelFrame(fl_tab, text="Pose Presets", padx=10, pady=10)
     fl_pose.pack(pady=10, fill="x", padx=10)
     l_btn_row1 = tk.Frame(fl_pose); l_btn_row1.pack(fill="x")
+    
     for lbl, angs in num_poses.items():
         tk.Button(l_btn_row1, text=lbl, width=4, command=lambda a=angs: send_hand_pose("FL", a)).pack(side="left", padx=3, expand=True)
     l_btn_row2 = tk.Frame(fl_pose); l_btn_row2.pack(fill="x", pady=10)
+    
     for lbl, angs in special_poses.items():
         tk.Button(l_btn_row2, text=lbl, width=10, command=lambda a=angs: send_hand_pose("FL", a)).pack(side="left", padx=3, expand=True)
-
 
 
     root.mainloop()
